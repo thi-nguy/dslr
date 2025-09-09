@@ -1,17 +1,28 @@
 import sys
 import csv
+import math
 
 class DataHandle:
     def __init__(self):
        self.data = {}
        self.columnList = []
+       self.columnType = {}
+       self.stats_functions = {
+        'count': self._count,
+        'mean': self._mean,
+        'std': self._std,
+        'min': self._min,
+        '25%': lambda data: self._percentile(data, 25),
+        '50%': lambda data: self._percentile(data, 50),
+        '75%': lambda data: self._percentile(data, 75),
+        'max': self._max
+       }
 
     def loadData(self, fileName):
         try:
             with open(fileName, 'r') as file:
                 reader = csv.DictReader(file)
                 self.columnList = reader.fieldnames
-                self.columnType = {}
 
                 for column in self.columnList:
                     self.data[column] = []
@@ -22,14 +33,20 @@ class DataHandle:
 
                 for column in self.columnList:
                     isNumeric = self.isNumericalColumn(self.data[column])
-                    self.columnType[column] = 'numeric' if is_number else 'non_numeric'
+                    if isNumeric:
+                        self.columnType[column] = 'numeric'
+                        self.data[column] = [float(val) for val in self.data[column] if val.strip()]
+                        print(column, self.data[column], "\n")
+                    else:
+                        self.columnType[column] = 'non_numeric'
+                        print(column, self.data[column], "\n")
         except FileNotFoundError:
             raise FileNotFoundError(f"File {fileName} does not exist")
     
-    def isNumericalString(self, stringData):
-        if isinstance(stringData, (int, float, str)):
+    def isNumericalString(self, data):
+        if isinstance(data, (int, float, str)):
             try:
-                float(stringData)
+                float(data)
                 return True
             except ValueError:
                 return False
@@ -47,12 +64,74 @@ class DataHandle:
         else:
             return False
 
-    def _displayResult():
+    def describe(self):
+        results = {}
+        for column in self.columnList:
+            if self.columnType[column] == 'numeric':
+                results[column] = self._calculate_column_stats(self.data[column])
+       
+        _display_results(results)
+
+    def _display_results(self, results):
         print("\n" + "=" * 40)
         print("GENERAL STATISTICS")
         print("=" * 40)
 
+    def _calculate_column_stats(self, column_values):
+        for stat_name, stat_func in self.stats_functions.items():
+            try:
+                stats[stat_name] = stat_func(column_values)
+            except Exception as e:
+                print(f"Error in caculating {stat_name}: {e}")
+
+    def _count(self, values):
+        return len(values)
+
+    def _mean(self, values):
+        return sum(values) / len(values) if values else None
+
+    def _min(self, values):
+        return min(values) if values else None
+
+    def _max(self, values):
+        return max(values) if values else None
+
+    def _std(self, values):
+        mean_val = self._mean(values)
+        variance = sum((x-mean_val) ** 2 for x in values)/ (len(values) - 1)
+        return math.sqrt(variance)
+
+    # Linear Interpolation method. Paper: https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf
+    def _percentile(self, values, percentile):
+        if not values:
+            raise ValueError("Empty Data")
+        if not (0 <= percentile <= 100):
+            raise ValueError("Percentile must be from 0 to 100")
+        sorted_values = sorted(values)
+        number_of_data = len(values)
+
+        if percentile == 0.0:
+            return sorted_values[0]
+        if percentile == 1.0:
+            return sorted_values[-1]
         
+        index = (percentile/100) * (number_of_data - 1)
+        if index == int(index):
+            return sorted_values[index]
+        
+        lower_index = int(index)
+        upper_index = min(lower_index + 1, n - 1)
+
+        if upper_index >= n:
+            return sorted_data[-1]
+
+        if (lower_index == upper_index):
+            return sorted_values[lower_index]
+
+        weigt = index - lower_index
+        return (sorted_values[lower_index] * (1- weight) + sorted_values[upper_index] * weight)
+        
+
 
             
                 
