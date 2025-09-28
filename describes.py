@@ -5,8 +5,10 @@ import math
 class DataHandle:
     def __init__(self):
        self.data = {}
+       
        self.columnList = []
        self.columnType = {}
+       self.stats = {}
        self.stats_functions = {
         'count': self._count,
         'mean': self._mean,
@@ -16,7 +18,7 @@ class DataHandle:
         '50%': lambda data: self._percentile(data, 50),
         '75%': lambda data: self._percentile(data, 75),
         'max': self._max
-       }
+        }
 
     def loadData(self, fileName):
         try:
@@ -36,10 +38,9 @@ class DataHandle:
                     if isNumeric:
                         self.columnType[column] = 'numeric'
                         self.data[column] = [float(val) for val in self.data[column] if val.strip()]
-                        print(column, self.data[column], "\n")
                     else:
                         self.columnType[column] = 'non_numeric'
-                        print(column, self.data[column], "\n")
+                        
         except FileNotFoundError:
             raise FileNotFoundError(f"File {fileName} does not exist")
     
@@ -65,24 +66,58 @@ class DataHandle:
             return False
 
     def describe(self):
-        results = {}
+        """Generate descriptive statistics for numeric columns"""
         for column in self.columnList:
-            if self.columnType[column] == 'numeric':
-                results[column] = self._calculate_column_stats(self.data[column])
-       
-        _display_results(results)
-
-    def _display_results(self, results):
-        print("\n" + "=" * 40)
-        print("GENERAL STATISTICS")
-        print("=" * 40)
-
+            if self.columnType[column] == 'numeric' and self.data[column]:
+                self.stats[column] = self._calculate_column_stats(self.data[column])
+        
+        self._display_results(self.stats)
+    
     def _calculate_column_stats(self, column_values):
+        """Calculate statistics for a single column"""
+        if not column_values:
+            return {}
+            
+        column_stats = {}
         for stat_name, stat_func in self.stats_functions.items():
             try:
-                stats[stat_name] = stat_func(column_values)
+                column_stats[stat_name] = stat_func(column_values)
             except Exception as e:
-                print(f"Error in caculating {stat_name}: {e}")
+                print(f"Error calculating {stat_name}: {e}")
+                column_stats[stat_name] = None
+        
+        return column_stats
+
+    def _display_results(self, results):
+        print("\n" + "=" * 80)
+        print("GENERAL STATISTICS")
+        print("=" * 80)
+
+        column_names = list(results.keys())
+        stat_names = list(self.stats_functions.keys())
+        # print(stat_names)
+        # print(columns)
+
+        header = f"{'Statistic':<16}"
+        for col in column_names:
+            header += f"{col:>16}"
+        print(header)
+        print("-" * len(header))
+
+        for stat in stat_names:
+            print(stat)
+            row = f"{stat:<10}"
+            for col in column_names:
+                value = results[col][stat]
+                if value is None:
+                    row += f"{'NaN':>16}"
+                elif isinstance(value, float):
+                    row += f"{value:>16.2f}"
+                else:
+                    row += f"{value:>16}"
+            print(row)
+        
+        print("="*80)
 
     def _count(self, values):
         return len(values)
@@ -117,23 +152,20 @@ class DataHandle:
         
         index = (percentile/100) * (number_of_data - 1)
         if index == int(index):
-            return sorted_values[index]
+            return sorted_values[int(index)]
         
         lower_index = int(index)
-        upper_index = min(lower_index + 1, n - 1)
+        upper_index = min(lower_index + 1, number_of_data - 1)
 
-        if upper_index >= n:
+        if upper_index >= number_of_data:
             return sorted_data[-1]
 
         if (lower_index == upper_index):
             return sorted_values[lower_index]
 
-        weigt = index - lower_index
+        weight = index - lower_index
         return (sorted_values[lower_index] * (1- weight) + sorted_values[upper_index] * weight)
         
-
-
-            
                 
 def main():
     dataSet = DataHandle()
@@ -143,6 +175,7 @@ def main():
     else:
         print(fileName)
         dataSet.loadData(fileName)
+        dataSet.describe()
     
 
 if __name__ == "__main__":
