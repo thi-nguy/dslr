@@ -1,6 +1,8 @@
 from DataHandle import DataHandle
+import matplotlib.pyplot as plt
 import sys
-                
+
+
 def main():
     data_set = DataHandle()
     if len(sys.argv) < 2:
@@ -9,8 +11,7 @@ def main():
     else:
         file_path = sys.argv[1]
         data_set.load_data(file_path)
-        data_set.describe()
-    
+        data_set.plot_histograms()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
