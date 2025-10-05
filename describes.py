@@ -4,10 +4,9 @@ import math
 
 class DataHandle:
     def __init__(self):
-       self.data = {}
-       
-       self.columnList = []
-       self.columnType = {}
+       self.data_set = {}
+       self.column_list = []
+       self.column_type = {}
        self.stats = {}
        self.stats_functions = {
         'count': self._count,
@@ -20,31 +19,7 @@ class DataHandle:
         'max': self._max
         }
 
-    def loadData(self, fileName):
-        try:
-            with open(fileName, 'r') as file:
-                reader = csv.DictReader(file)
-                self.columnList = reader.fieldnames
-
-                for column in self.columnList:
-                    self.data[column] = []
-
-                for row in reader:
-                    for column in self.columnList:
-                        self.data[column].append(row[column])
-
-                for column in self.columnList:
-                    isNumeric = self.isNumericalColumn(self.data[column])
-                    if isNumeric:
-                        self.columnType[column] = 'numeric'
-                        self.data[column] = [float(val) for val in self.data[column] if val.strip()]
-                    else:
-                        self.columnType[column] = 'non_numeric'
-                        
-        except FileNotFoundError:
-            raise FileNotFoundError(f"File {fileName} does not exist")
-    
-    def isNumericalString(self, data):
+    def _is_numerical_string(self, data):
         if isinstance(data, (int, float, str)):
             try:
                 float(data)
@@ -54,27 +29,18 @@ class DataHandle:
         else:
             return False
 
-    def isNumericalColumn(self, columnData):
-        columnLength = len(columnData)
-        numCount = 0
-        for data in columnData:
-            if self.isNumericalString(data):
-                numCount += 1
-        if numCount >= (70/100) * columnLength:
+    def _is_numerical_column(self, column_data):
+        column_length = len(column_data)
+        numeric_data_count = 0
+        for data in column_data:
+            if self._is_numerical_string(data):
+                numeric_data_count += 1
+        if numeric_data_count >= (70/100) * column_length:
             return True
         else:
             return False
 
-    def describe(self):
-        """Generate descriptive statistics for numeric columns"""
-        for column in self.columnList:
-            if self.columnType[column] == 'numeric' and self.data[column]:
-                self.stats[column] = self._calculate_column_stats(self.data[column])
-        
-        self._display_results(self.stats)
-    
     def _calculate_column_stats(self, column_values):
-        """Calculate statistics for a single column"""
         if not column_values:
             return {}
             
@@ -95,26 +61,22 @@ class DataHandle:
 
         column_names = list(results.keys())
         stat_names = list(self.stats_functions.keys())
-        # print(stat_names)
-        # print(columns)
 
-        header = f"{'Statistic':<16}"
+        header = ' ' * 10
         for col in column_names:
-            header += f"{col:>16}"
+            header += f"{' ' * 3 + col}"
         print(header)
-        print("-" * len(header))
 
         for stat in stat_names:
-            print(stat)
             row = f"{stat:<10}"
             for col in column_names:
                 value = results[col][stat]
                 if value is None:
-                    row += f"{'NaN':>16}"
+                    row += f"{'NaN':>{len(col) + 3}}"
                 elif isinstance(value, float):
-                    row += f"{value:>16.2f}"
+                    row += f"{value:>{len(col) + 3}.2f}"
                 else:
-                    row += f"{value:>16}"
+                    row += f"{value:>{len(col) + 3}}"
             print(row)
         
         print("="*80)
@@ -143,21 +105,21 @@ class DataHandle:
         if not (0 <= percentile <= 100):
             raise ValueError("Percentile must be from 0 to 100")
         sorted_values = sorted(values)
-        number_of_data = len(values)
+        data_length = len(values)
 
         if percentile == 0.0:
             return sorted_values[0]
         if percentile == 1.0:
             return sorted_values[-1]
         
-        index = (percentile/100) * (number_of_data - 1)
+        index = (percentile/100) * (data_length - 1)
         if index == int(index):
             return sorted_values[int(index)]
         
         lower_index = int(index)
-        upper_index = min(lower_index + 1, number_of_data - 1)
+        upper_index = min(lower_index + 1, data_length - 1)
 
-        if upper_index >= number_of_data:
+        if upper_index >= data_length:
             return sorted_data[-1]
 
         if (lower_index == upper_index):
@@ -165,17 +127,51 @@ class DataHandle:
 
         weight = index - lower_index
         return (sorted_values[lower_index] * (1- weight) + sorted_values[upper_index] * weight)
+
+    def load_data(self, file_path):
+        try:
+            with open(file_path, 'r') as file:
+                file_reader = csv.DictReader(file)
+                self.column_list = file_reader.fieldnames
+
+                for column in self.column_list:
+                    self.data_set[column] = []
+
+                for row in file_reader:
+                    for column in self.column_list:
+                        self.data_set[column].append(row[column])
+
+                for column in self.column_list:
+                    is_numeric = self._is_numerical_column(self.data_set[column])
+                    if is_numeric:
+                        self.column_type[column] = 'numeric'
+                        self.data_set[column] = [float(val) for val in self.data_set[column] if val.strip()]
+                    else:
+                        self.column_type[column] = 'non_numeric'
+                        
+        except FileNotFoundError:
+            raise FileNotFoundError(f"File {file_path} does not exist")    
+
+    def describe(self):
+        """Generate descriptive statistics for numeric columns"""
+        for column in self.column_list:
+            if self.column_type[column] == 'numeric' and self.data_set[column]:
+                self.stats[column] = self._calculate_column_stats(self.data_set[column])
+        
+        self._display_results(self.stats)
+   
         
                 
 def main():
-    dataSet = DataHandle()
-    fileName = sys.argv[1]
-    if not fileName:
-        print(f"Need dataset in here.")
+    data_set = DataHandle()
+    if len(sys.argv) < 2:
+        print("How to use this program: python3 describes.py <link_file_csv>")
+        print("Example: python3 describes.py data.csv")
     else:
-        print(fileName)
-        dataSet.loadData(fileName)
-        dataSet.describe()
+        file_path = sys.argv[1]
+        print(file_path)
+        data_set.load_data(file_path)
+        data_set.describe()
     
 
 if __name__ == "__main__":
