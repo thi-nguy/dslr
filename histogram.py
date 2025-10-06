@@ -11,7 +11,7 @@ def main():
     else:
         file_path = sys.argv[1]
         data_set.load_data(file_path)
-        data_set.plot_histograms()
+        data_set.plot_histogram()
 
 if __name__ == '__main__':
     main()

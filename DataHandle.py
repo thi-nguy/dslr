@@ -1,6 +1,7 @@
 import csv
 import math
 import matplotlib.pyplot as plt
+import numpy as np
 
 class DataHandle:
     def __init__(self):
@@ -161,12 +162,11 @@ class DataHandle:
         self._calculate_all_stats()
         self._display_results(self.stats)
 
-    def plot_histograms(self):
+    def plot_histogram(self):
         features = []
         for column in self.column_list:
             if self.column_type[column] == 'numeric' and self.data_set[column] and column != 'Index':
                 features.append(column)
-        print(features)
         n_rows = 3
         n_cols = (len(features) + n_rows - 1) // n_rows
 
@@ -182,30 +182,35 @@ class DataHandle:
             self._calculate_all_stats()
             std = self.stats[feature]['std']
             mean = self.stats[feature]['mean']
+            cv = abs(std/mean) #coefficient of variation
 
-            if std < 0.5:
-                assessment = "HOMOGENOUS\n❌ Consider REMOVING"
+            if cv < 0.3: 
+                assessment = "HOMOGENOUS\nx Consider REMOVING"
                 color = 'red'
-            elif std < 1.5:
-                assessment = "MODERATE\n⚠️ Need more assessment"
-                color = 'orange'
-            else:
+            elif cv > 0.5 and abs(mean) >= 0.05: # ! if mean is too small, need more assesment
                 assessment = "HETEROGENOUS\n✓ Consider KEEPING"
                 color = 'green'
+            else:
+                assessment = "MODERATE\n⚠️ Need more assessment"
+                color = 'orange'
 
             sub_plot.set_title(f'{feature}\n{assessment}',fontsize=8, fontweight='bold', color=color)
             sub_plot.set_xlabel('Grade')
             sub_plot.set_ylabel('Frequency')
 
             sub_plot.axvline(mean, color='red', linestyle='--', linewidth=0.5)
-            sub_plot.text(0.02, 0.98, f'Std={std:.2f}\nMean={mean:.2f}', 
+            sub_plot.text(0.02, 0.98, f'Mean = {mean:.2f}\nStd = {std:.2f}\nCV = {cv:.2f}',
             transform=sub_plot.transAxes, fontsize=6, verticalalignment='top',
             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
-            sub_plot.legend()
             sub_plot.grid(axis='y', alpha=0.3)
 
         for idx in range(len(features), len(axes)):
             axes[idx].axis('off')
 
-        plt.tight_layout()
-        plt.show()
+        fig.suptitle('Histogram of all subjects', fontsize = 16)
+        fig.tight_layout()
+        try:
+            plt.show()
+        except KeyboardInterrupt:
+            print("\nHistograms are closed")
+            plt.close('all')
