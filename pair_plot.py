@@ -1,0 +1,1 @@
+# To Sophie 8, basically the same as scatter_plot, we'll just draw pair_plot of high correlation features (I think...I haven't thought of better idea...If you have other idea pls let me know). So I deal with it later and move to more consuming part: training model T__T
