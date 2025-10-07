@@ -19,7 +19,7 @@ def plot_high_correlation_features(df, threshold=0.7):
     n_pairs = len(high_corr)
     
     if n_pairs == 0:
-        print(f"Không có cặp nào có |correlation| >= {threshold}")
+        print(f"No correlation |correlation| >= {threshold}")
         return
     
     n_rows = 2
@@ -48,7 +48,7 @@ def plot_high_correlation_features(df, threshold=0.7):
 
 
 def main():
-    df = pd.read_csv('./datasets/dataset_train.csv', index_col='Index')
+    df = pd.read_csv('./datasets/dataset_train.csv', index_col='Index') # To Sophie 6: In contrast with histogram, we run the data set directly here...
     numeric_df = df.select_dtypes(include=[np.number])
 
     correlation_matrix = numeric_df.corr()
@@ -62,7 +62,7 @@ def main():
         print("\nHeatmap is closed")
         plt.close('all')
 
-    plot_high_correlation_features(numeric_df)
+    plot_high_correlation_features(numeric_df) # To Sophie 7: we don't plot all 13 features scatter_plot because it's huge.
 
 
 if __name__ == '__main__':

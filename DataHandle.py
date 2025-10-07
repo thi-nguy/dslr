@@ -99,7 +99,7 @@ class DataHandle:
         variance = sum((x-mean_val) ** 2 for x in values)/ (len(values) - 1)
         return math.sqrt(variance)
 
-    # Linear Interpolation method. Paper: https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf
+    # We use Linear Interpolation method here to decide percentile. Paper: https://www.amherst.edu/media/view/129116/original/Sample+Quantiles.pdf
     def _percentile(self, values, percentile):
         if not values:
             raise ValueError("Empty Data")
@@ -134,7 +134,7 @@ class DataHandle:
             if self.column_type[column] == 'numeric' and self.data_set[column]:
                 self.stats[column] = self._calculate_column_stats(self.data_set[column])
 
-    def load_data(self, file_path):
+    def load_data(self, file_path): # To Sophie 1: I'm not sure we do it or just using panda.read_csv, it's much less headache later. I use this at first because I'm afraid they said it's the library that has done all bla bla bla, to be reconsidered later...
         try:
             with open(file_path, 'r') as file:
                 file_reader = csv.DictReader(file)
@@ -185,14 +185,15 @@ class DataHandle:
             cv = abs(std/mean) #coefficient of variation
 
             if cv < 0.3: 
-                assessment = "HOMOGENOUS\nx Consider REMOVING"
+                assessment = "HOMOGENOUS\nx Consider REMOVING" # To Sophie 2: even CV is small, but it has several picks, we keep it too..
                 color = 'red'
-            elif cv > 0.5 and abs(mean) >= 0.05: # ! if mean is too small, need more assesment
+            elif cv > 0.5: # To Sophie 3: if mean is too small, it causes CV high, but it does not say that we should keep it. If it has standard distribution, it's enough.
                 assessment = "HETEROGENOUS\n✓ Consider KEEPING"
                 color = 'green'
             else:
                 assessment = "MODERATE\n⚠️ Need more assessment"
                 color = 'orange'
+            # To Sophie 4: in conclusion: I'm not sure it's a good idea to add the assesment or just showing the histogram and we talk on the way of how we'll choose the feature.
 
             sub_plot.set_title(f'{feature}\n{assessment}',fontsize=8, fontweight='bold', color=color)
             sub_plot.set_xlabel('Grade')
