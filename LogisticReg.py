@@ -3,68 +3,82 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import RobustScaler
 
+def select_features(original_df):
+    data = original_df.dropna()
+    selected_features = ["Flying", "Muggle Studies", "Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"] # To be confirmed by the two previous parts
+    features = data[selected_features]
+    labels = np.array(data.loc[:,"Hogwarts House"])
+    
+    return features, labels
 
 class LogisticRegression(object):
-    def __init__(self, weights=[], learning_rate=0.0005, epochs=300):
+    def __init__(self, learning_rate=0.001, n_iterations=300):
         self.learning_rate = learning_rate
-        self.number_of_epochs = epochs
-        self.weight_array = weights
+        self.n_iterations = n_iterations
+        self.weights = {}
+        self.losses = {}
+        self.scaler = None
+        self.houses = None
 
     def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
     
-    def _loss_function(self, weights, X, y):
-        y_pred = self._sigmoid(X @ weights)
-        cost = -np.mean(y * np.log(y_pred) + (1 - y) * np.log(1 - y_pred))
+    def _compute_loss(self, y, y_pred):
+        m = len(y)
+        cost = (-1/m) * (y.T @ np.log(y_pred) + (1 - y).T @ np.log(1 - y_pred))
         return cost
 
-    def _select_features(self, original_data):
-        data = original_data.dropna()
-        selected_features = ["Flying", "Muggle Studies", "Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"] # To be confirmed by the two previous parts
-        features = np.array(data[selected_features])
-        labels = np.array(data.loc[:,"Hogwarts House"])
-        
-        return features, labels
+    def _compute_gradient(self, X, y, y_pred):
+        m = len(y)
+        gradient = (1/m) * X.T @ (y_pred - y)
+        return gradient
 
-    def fit(self, data):
-        X, y = self._select_features(data)
-        # scaler = RobustScaler()
-        # X_scaled = scaler.fit_transform(X)
-        X_scaled = X
+    def fit(self, X, y):
+        scaler = RobustScaler()
+        X_scaled = scaler.fit_transform(X)
         X_scaled = np.insert(X_scaled, 0, 1, axis=1)
 
-
         m, n = X_scaled.shape
-        print(m, n)
+        self.houses = np.unique(y)
 
-        epoch_array = [i for i in range(0, self.number_of_epochs)]
-
-        for house_name in np.unique(y):
-            y_binary = np.where(y == house_name, 1, 0) #syntax_scaled: np.where(condition, value_if_condition_true, value_if_condition_false)
-            w = np.zeros(n) # Create an array of 0 for initial weights
-            cost_array_over_epochs = []
-            for i in range(self.number_of_epochs):
+        for house_name in self.houses:
+            y_binary = np.where(y == house_name, 1, 0).reshape(-1, 1)
+            w = np.zeros((n, 1)) # Create an array of 0 for initial weights
+            self.losses[house_name] = []
+            for i in range(self.n_iterations):
                 # ŷ = σ(X_scaledw)
                 z = X_scaled @ w
                 y_predict = self._sigmoid(z)
                 # ∇J(w) = 1/m × X_scaled^T(ŷ - y)
-                gradient = (1/m) * X_scaled.T @ (y_predict - y_binary)
+                loss = self._compute_loss(y_binary, y_predict)
+                self.losses[house_name].append(loss)
+
+                gradient = self._compute_gradient(X_scaled, y_binary, y_predict)
+
                 # Update Rule: w := w - α × ∇J(w)
-                w = w - self.learning_rate * gradient
+                w -= self.learning_rate * gradient
 
-                cost = self._loss_function(w, X_scaled, y_binary)
-                cost_array_over_epochs.append(cost)
-                # if i % 100 == 0:
-                #     print(f"Iteration {i}: Loss = {loss:.4f}")
-            plt.plot(epoch_array, cost_array_over_epochs, label=house_name)
-            plt.xlabel("epoch")
-            plt.ylabel("cost")
-            plt.legend()
-            plt.show()
-            # print(house_name, w)
+            self.weights[house_name] = w
+        return self.weights
 
-        return w
+    def plot_loss(self): # ! to Fix
+        for house_name in self.houses:
+            for i in range(self.n_iterations):
+                if i % 100 == 0:
+                    print(f'{house_name} - {self.losses[house_name][i]}')
 
+        plt.figure(figsize=(12, 6))
+        
+        for class_name, loss_history in self.losses.items():
+            plt.plot(loss_history, label=class_name, linewidth=2)
+        
+        plt.xlabel('Iterations', fontsize=12)
+        plt.ylabel('Loss', fontsize=12)
+        plt.title('Training Loss over Iterations (One-vs-Rest)', fontsize=14)
+        plt.legend(loc='best')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        plt.show()
 
 
     
@@ -84,9 +98,10 @@ class LogisticRegression(object):
 if __name__ == "__main__":
     try:
         data = pd.read_csv("dataset_train.csv", index_col = "Index")
-    except:
+        X, y = select_features(data)
+        model = LogisticRegression()
+        weights = model.fit(X, y)
+        print(weights)
+        model.plot_loss()
+    except FileNotFoundError:
         print("dataset_train.csv not found.")
-    weights = LogisticRegression().fit(data)
-    # print(weights)
-    # np.save("weights", weights)
-    # print("Accuracy score:", LogisticRegression().score(data))

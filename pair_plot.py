@@ -22,14 +22,14 @@ def main():
         print("This program does not need arguments")
         print("It draws pair plot for dataset_train.csv")
     else:
-        try: # ! To finalize
+        try:
             df = pd.read_csv('dataset_train.csv', index_col='Index')
             numeric_df = df.select_dtypes(include=[np.number])
 
             features = set(numeric_df.columns.tolist())
             kept_high_corr_features = set(['Astronomy', 'Herbology', 'Muggle Studies', 'Flying'])
             total_high_corr_features = get_high_corr_feature_set(select_high_corr_feature(numeric_df))
-            
+
             feature_to_remove = total_high_corr_features - kept_high_corr_features
             feature_to_keep = features - feature_to_remove
 
