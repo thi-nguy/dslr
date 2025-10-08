@@ -12,3 +12,11 @@ def select_high_corr_feature(df, threshold=0.7):
                     corr_matrix.iloc[i, j]
                 ))
     return high_corr
+
+def get_high_corr_feature_set(high_corr):
+    feature_set = set()
+    for feature_1, feature_2, _ in high_corr:
+        feature_set.add(feature_1)
+        feature_set.add(feature_2)
+    print(len(feature_set))
+    return feature_set
