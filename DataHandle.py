@@ -195,7 +195,7 @@ class DataHandle:
             #     color = 'orange'
             # # To Sophie 4: in conclusion: I'm not sure it's a good idea to add the assesment or just showing the histogram and we talk on the way of how we'll choose the feature.
 
-            sub_plot.set_title(f'{feature}\n{assessment}',fontsize=8, fontweight='bold', color=color)
+            sub_plot.set_title(f'{feature}\n',fontsize=8, fontweight='bold')
             sub_plot.set_xlabel('Grade')
             sub_plot.set_ylabel('Frequency')
 

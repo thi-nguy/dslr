@@ -4,17 +4,16 @@ import sys
 
 
 def main():
-    if len(sys.argv) > 2:
-        print("How to use this program: python3 describes.py <link_file_csv>")
-        print("Example: python3 describes.py data.csv")
+    if len(sys.argv) > 1:
+        print("This program does not need arguments")
+        print("It draws histogram for dataset_train.csv")
     else:
         try:
             data_set = DataHandle()
-            file_path = sys.arg[1]
             data_set.load_data('dataset_train.csv')
             data_set.plot_histogram()
         except FileNotFoundError:
-            print(f'File path {file_path} does not exist')
+            print(f'File dataset_train.csv does not exist')
 
 if __name__ == '__main__':
     main()
