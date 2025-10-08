@@ -4,15 +4,12 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 import sys
-from utils import select_high_corr_feature, get_feature_set
+from utils import select_high_corr_feature
 
 def plot_high_correlation_features(df, threshold=0.7):
     high_corr = select_high_corr_feature(df)
-    feature_set = get_feature_set(high_corr)
-    print("High correlation features: ", feature_set)
     n_pairs = len(high_corr)
 
-    
     if n_pairs == 0:
         print(f"No correlation |correlation| >= {threshold}")
         return
@@ -56,11 +53,18 @@ def plot_heat_map(df):
 
 
 def main():
-    df = pd.read_csv('dataset_train.csv', index_col='Index') # To Sophie 6: In contrast with histogram, we run the data set directly here...
-    numeric_df = df.select_dtypes(include=[np.number])
+    if len(sys.argv) > 1:
+        print("This program does not need arguments")
+        print("It draws scatter plot for dataset_train.csv")
+    else:
+        try:
+            df = pd.read_csv('dataset_train.csv', index_col='Index') # To Sophie 6: In contrast with histogram, we run the data set directly here...
+            numeric_df = df.select_dtypes(include=[np.number])
 
-    plot_heat_map(numeric_df)
-    plot_high_correlation_features(numeric_df) # To Sophie 7: we don't plot all 13 features scatter_plot because it's huge.
+            plot_heat_map(numeric_df)
+            plot_high_correlation_features(numeric_df) # To Sophie 7: we don't plot all 13 features scatter_plot because it's huge.
+        except FileNotFoundError:
+            print(f'File dataset_train.csv does not exist')
     
 
 if __name__ == '__main__':
