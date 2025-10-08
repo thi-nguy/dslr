@@ -20,7 +20,7 @@ class LogisticRegression(object):
 
     def _select_features(self, original_data):
         data = original_data.dropna()
-        selected_features = ["Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"] # To be confirmed by the two previous parts
+        selected_features = ["Flying", "Muggle Studies", "Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"] # To be confirmed by the two previous parts
         features = np.array(data[selected_features])
         labels = np.array(data.loc[:,"Hogwarts House"])
         

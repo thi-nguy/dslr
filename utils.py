@@ -18,5 +18,4 @@ def get_high_corr_feature_set(high_corr):
     for feature_1, feature_2, _ in high_corr:
         feature_set.add(feature_1)
         feature_set.add(feature_2)
-    print(len(feature_set))
     return feature_set
