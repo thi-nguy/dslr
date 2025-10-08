@@ -184,16 +184,16 @@ class DataHandle:
             mean = self.stats[feature]['mean']
             cv = abs(std/mean) #coefficient of variation
 
-            if cv < 0.3: 
-                assessment = "HOMOGENOUS\nx Consider REMOVING" # To Sophie 2: even CV is small, but it has several picks, we keep it too..
-                color = 'red'
-            elif cv > 0.5: # To Sophie 3: if mean is too small, it causes CV high, but it does not say that we should keep it. If it has standard distribution, it's enough.
-                assessment = "HETEROGENOUS\n✓ Consider KEEPING"
-                color = 'green'
-            else:
-                assessment = "MODERATE\n⚠️ Need more assessment"
-                color = 'orange'
-            # To Sophie 4: in conclusion: I'm not sure it's a good idea to add the assesment or just showing the histogram and we talk on the way of how we'll choose the feature.
+            # if cv < 0.3: 
+            #     assessment = "HOMOGENOUS\nx Consider REMOVING" # To Sophie 2: even CV is small, but it has several picks, we keep it too..
+            #     color = 'red'
+            # elif cv > 0.5: # To Sophie 3: if mean is too small, it causes CV high, but it does not say that we should keep it. If it has standard distribution, it's enough.
+            #     assessment = "HETEROGENOUS\n✓ Consider KEEPING"
+            #     color = 'green'
+            # else:
+            #     assessment = "MODERATE\n⚠️ Need more assessment"
+            #     color = 'orange'
+            # # To Sophie 4: in conclusion: I'm not sure it's a good idea to add the assesment or just showing the histogram and we talk on the way of how we'll choose the feature.
 
             sub_plot.set_title(f'{feature}\n{assessment}',fontsize=8, fontweight='bold', color=color)
             sub_plot.set_xlabel('Grade')
