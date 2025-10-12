@@ -12,7 +12,7 @@ def select_features(original_df):
     return features, labels
 
 class LogisticRegression(object):
-    def __init__(self, learning_rate=0.001, n_iterations=300):
+    def __init__(self, learning_rate=0.05, n_iterations=2000):
         self.learning_rate = learning_rate
         self.n_iterations = n_iterations
         self.weights = {}
@@ -30,7 +30,7 @@ class LogisticRegression(object):
 
     def _compute_gradient(self, X, y, y_pred):
         m = len(y)
-        gradient = (1/m) * X.T @ (y_pred - y)
+        gradient = (1/m) * (X.T @ (y_pred - y))
         return gradient
 
     def fit(self, X, y):
@@ -51,6 +51,8 @@ class LogisticRegression(object):
                 y_predict = self._sigmoid(z)
                 # ∇J(w) = 1/m × X_scaled^T(ŷ - y)
                 loss = self._compute_loss(y_binary, y_predict)
+                if isinstance(loss, np.ndarray):
+                    loss = loss.item()
                 self.losses[house_name].append(loss)
 
                 gradient = self._compute_gradient(X_scaled, y_binary, y_predict)
@@ -61,24 +63,24 @@ class LogisticRegression(object):
             self.weights[house_name] = w
         return self.weights
 
-    def plot_loss(self): # ! to Fix
-        for house_name in self.houses:
-            for i in range(self.n_iterations):
-                if i % 100 == 0:
-                    print(f'{house_name} - {self.losses[house_name][i]}')
-
+    def plot_loss(self):
         plt.figure(figsize=(12, 6))
         
         for class_name, loss_history in self.losses.items():
-            plt.plot(loss_history, label=class_name, linewidth=2)
+            steps = range(len(loss_history))
+            plt.plot(steps, loss_history, label=class_name, linewidth=2)
         
         plt.xlabel('Iterations', fontsize=12)
         plt.ylabel('Loss', fontsize=12)
-        plt.title('Training Loss over Iterations (One-vs-Rest)', fontsize=14)
+        plt.title('Training Loss over Iterations', fontsize=14)
         plt.legend(loc='best')
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        plt.show()
+        try:
+            plt.show()
+        except KeyboardInterrupt:
+            print("\nTraining Loss plot is closed")
+            plt.close('all')
 
 
     
@@ -101,7 +103,6 @@ if __name__ == "__main__":
         X, y = select_features(data)
         model = LogisticRegression()
         weights = model.fit(X, y)
-        print(weights)
         model.plot_loss()
     except FileNotFoundError:
         print("dataset_train.csv not found.")
