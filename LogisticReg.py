@@ -32,13 +32,20 @@ class LogisticRegression(object):
         gradient = (1/m) * (X.T @ (y_pred - y))
         return gradient
 
+    def scaling(self, x):
+        self.scaler = RobustScaler()
+        x_scaled = self.scaler.fit_transform(x)
+        return x_scaled
+    
+    def set_houses(self, y):
+        self.houses = np.unique(y)
+
     def fit(self, X, y):
-        scaler = RobustScaler()
-        X_scaled = scaler.fit_transform(X)
+        X_scaled = scaling(X)
         X_scaled = np.insert(X_scaled, 0, 1, axis=1)
 
         m, n = X_scaled.shape
-        self.houses = np.unique(y)
+        self.set_houses(y)
 
         for house_name in self.houses:
             y_binary = np.where(y == house_name, 1, 0).reshape(-1, 1)
@@ -91,17 +98,3 @@ class LogisticRegression(object):
                 
         df.to_csv(filename, index=False)
         print(f'Weights saved to {filename}')
-
-
-    
-    def _predict_one(self, x_scaled):
-        return max((x.dot(w), c) for w, c in self.w)[1]
-
-
-    def predict(self, X):
-        return [self._predict_one(i) for i in np.insert(X, 0, 1, axis=1)]
-    
-    
-    def score(self,data):
-        X, y = self._use_chosen_features(data)
-        return sum(self.predict(X) == y) / len(y)   

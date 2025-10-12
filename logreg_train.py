@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 from LogisticReg import LogisticRegression, select_data
+from utils import prepare_model, SELECTED_FEATURES
 
 
 def main():
@@ -9,13 +10,9 @@ def main():
         print("It trains data from dataset_train.csv")
     else:
         try:
-            data = pd.read_csv("dataset_train.csv", index_col = "Index")
-            selected_features = ["Flying", "Muggle Studies", "Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"] # To be confirmed by the two previous parts
-            X, y = select_data(data, selected_features)
-            model = LogisticRegression()
-            weights = model.fit(X, y)
+            model = prepare_model()
             model.plot_loss()
-            model.save_weights('weights.csv', selected_features)
+            model.save_weights('weights.csv', SELECTED_FEATURES)
         except FileNotFoundError:
             print("dataset_train.csv not found.")
 
