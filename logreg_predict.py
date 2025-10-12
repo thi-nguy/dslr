@@ -1,7 +1,7 @@
 import sys
 import numpy as np
 import pandas as pd
-from LogisticReg import LogisticRegression, select_data
+from LogisticReg import LogisticRegression
 from utils import prepare_model, SELECTED_FEATURES
 
 
@@ -9,7 +9,6 @@ def get_y_predict(X, log_model):
     if log_model.scaler is None or log_model.houses is None:
         raise ValueError("Model must be preparee before prediction")
     
-    X.dropna()
     X_scaled = log_model.scaler.transform(X)
     X_scaled = np.insert(X_scaled, 0, 1, axis=1)
     y_predicted = {}
@@ -34,24 +33,25 @@ def main():
         print("Example: -----python3 logreg_predict.py dataset_test.csv weights.csv-----")
     else:
         try:
-            model = prepare_model()
+            model, _, _ = prepare_model()
+
             test_file_path = sys.argv[1]
             weights_path = sys.argv[2]
 
-            test_data = pd.read_csv(test_file_path, index_col = "Index")
-           
-            df = pd.read_csv(weights_path)
+            weights_df = pd.read_csv(weights_path)
             for house_name in model.houses:
-                model.weights[house_name] = df[house_name].values.reshape(-1, 1)
+                model.weights[house_name] = weights_df[house_name].values.reshape(-1, 1)
 
+            test_data = pd.read_csv(test_file_path, index_col = "Index")
             X_test = test_data[SELECTED_FEATURES]
+            X_test = X_test.dropna()
 
             predictions = predict(X_test, model)
 
-            if 'Index' in test_data.columns:
-                indices = test_data['Index']
+            if 'Index' in X_test:
+                indices = X_test['Index']
             else:
-                indices = test_data.index
+                indices = X_test.index
 
             result_df = pd.DataFrame({
                 'Index': indices,
@@ -60,7 +60,7 @@ def main():
             result_df.to_csv('houses.csv', index=False)
 
         except FileNotFoundError:
-            print("dataset_test.csv not found.")
+            print("Dataset or weights not found. Insert valid csv files or train model for weights")
 
 
 if __name__ == "__main__":

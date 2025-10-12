@@ -58,11 +58,11 @@ def main():
         print("It draws scatter plot for dataset_train.csv")
     else:
         try:
-            df = pd.read_csv('dataset_train.csv', index_col='Index') # To Sophie 6: In contrast with histogram, we run the data set directly here...
+            df = pd.read_csv('dataset_train.csv', index_col='Index') 
             numeric_df = df.select_dtypes(include=[np.number])
 
             plot_heat_map(numeric_df)
-            plot_high_correlation_features(numeric_df) # To Sophie 7: we don't plot all 13 features scatter_plot because it's huge.
+            plot_high_correlation_features(numeric_df)
         except FileNotFoundError:
             print(f'File dataset_train.csv does not exist')
     

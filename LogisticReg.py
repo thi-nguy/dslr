@@ -3,12 +3,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import RobustScaler
 
-def select_data(original_df, selected_features):
-    data = original_df.dropna()
-    features = data[selected_features]
-    labels = np.array(data.loc[:,"Hogwarts House"])
-    
-    return features, labels
 
 class LogisticRegression(object):
     def __init__(self, learning_rate=0.05, n_iterations=2000):
@@ -41,7 +35,7 @@ class LogisticRegression(object):
         self.houses = np.unique(y)
 
     def fit(self, X, y):
-        X_scaled = scaling(X)
+        X_scaled = self.scaling(X)
         X_scaled = np.insert(X_scaled, 0, 1, axis=1)
 
         m, n = X_scaled.shape

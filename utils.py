@@ -1,5 +1,6 @@
+import numpy as np
 import pandas as pd
-from LogisticReg import LogisticRegression, select_data
+from LogisticReg import LogisticRegression
 
 
 SELECTED_FEATURES = ["Flying", "Muggle Studies", "Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"]
@@ -26,10 +27,17 @@ def get_high_corr_feature_set(high_corr):
         feature_set.add(feature_2)
     return feature_set
 
+def select_data(original_df, selected_features):
+    data = original_df.dropna()
+    features = data[selected_features]
+    labels = np.array(data.loc[:,"Hogwarts House"])
+    
+    return features, labels
+
 def prepare_model():
     data = pd.read_csv("dataset_train.csv", index_col = "Index")
     X, y = select_data(data, SELECTED_FEATURES)
     model = LogisticRegression()
-    model.scaling(X)
+    X = model.scaling(X)
     model.set_houses(y)
-    return model
+    return model, X, y

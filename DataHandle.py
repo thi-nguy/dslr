@@ -134,7 +134,7 @@ class DataHandle:
             if self.column_type[column] == 'numeric' and self.data_set[column]:
                 self.stats[column] = self._calculate_column_stats(self.data_set[column])
 
-    def load_data(self, file_path): # To Sophie 1: I'm not sure we do it or just using panda.read_csv, it's much less headache later. I use this at first because I'm afraid they said it's the library that has done all bla bla bla, to be reconsidered later...
+    def load_data(self, file_path):
         try:
             with open(file_path, 'r') as file:
                 file_reader = csv.DictReader(file)
@@ -193,8 +193,7 @@ class DataHandle:
             # else:
             #     assessment = "MODERATE\n⚠️ Need more assessment"
             #     color = 'orange'
-            # # To Sophie 4: in conclusion: I'm not sure it's a good idea to add the assesment or just showing the histogram and we talk on the way of how we'll choose the feature.
-
+            
             sub_plot.set_title(f'{feature}\n',fontsize=8, fontweight='bold')
             sub_plot.set_xlabel('Grade')
             sub_plot.set_ylabel('Frequency')
