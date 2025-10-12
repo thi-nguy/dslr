@@ -3,9 +3,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import RobustScaler
 
-def select_features(original_df):
+def select_data(original_df, selected_features):
     data = original_df.dropna()
-    selected_features = ["Flying", "Muggle Studies", "Charms", "Herbology", "Ancient Runes", "Astronomy", "Divination"] # To be confirmed by the two previous parts
     features = data[selected_features]
     labels = np.array(data.loc[:,"Hogwarts House"])
     
@@ -82,6 +81,17 @@ class LogisticRegression(object):
             print("\nTraining Loss plot is closed")
             plt.close('all')
 
+    def save_weights(self, filename='weights.csv', feature_names=None):
+        feature_names = ['Bias'] + feature_names
+        weight_dict = {'Feature': feature_names}
+        for house_name, weight in self.weights.items():
+            weight_dict[house_name] = weight.flatten()
+        
+        df = pd.DataFrame(weight_dict)
+                
+        df.to_csv(filename, index=False)
+        print(f'Weights saved to {filename}')
+
 
     
     def _predict_one(self, x_scaled):
@@ -95,14 +105,3 @@ class LogisticRegression(object):
     def score(self,data):
         X, y = self._use_chosen_features(data)
         return sum(self.predict(X) == y) / len(y)   
-
-    
-if __name__ == "__main__":
-    try:
-        data = pd.read_csv("dataset_train.csv", index_col = "Index")
-        X, y = select_features(data)
-        model = LogisticRegression()
-        weights = model.fit(X, y)
-        model.plot_loss()
-    except FileNotFoundError:
-        print("dataset_train.csv not found.")
