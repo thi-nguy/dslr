@@ -11,9 +11,14 @@ def main():
     else:
         try:
             model, X, y = prepare_model()
+
             model.fit(X, y)
             model.plot_loss()
             model.save_weights('weights.csv', SELECTED_FEATURES)
+            # --- BONUS: Stochastic Gradient Descent -----
+            # model.fit_stochastic(X, y)
+            # model.plot_loss_stochastic()
+            # model.save_weights_stochastic('weights_stochastic.csv', SELECTED_FEATURES)
         except FileNotFoundError:
             print("dataset_train.csv not found.")
 

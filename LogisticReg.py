@@ -12,6 +12,9 @@ class LogisticRegression(object):
         self.losses = {}
         self.scaler = None
         self.houses = None
+        self.n_iterations_stochastic = 50
+        self.weights_stochastic = {}
+        self.losses_stochastic = {}
 
     def _sigmoid(self, z):
         return 1 / (1 + np.exp(-z))
@@ -86,6 +89,73 @@ class LogisticRegression(object):
         feature_names = ['Bias'] + feature_names
         weight_dict = {'Feature': feature_names}
         for house_name, weight in self.weights.items():
+            weight_dict[house_name] = weight.flatten()
+        
+        df = pd.DataFrame(weight_dict)
+                
+        df.to_csv(filename, index=False)
+        print(f'Weights saved to {filename}')
+
+    def fit_stochastic(self, X, y):
+        X_scaled = self.scaling(X)
+        X_scaled = np.insert(X_scaled, 0, 1, axis=1)
+        m, n = X_scaled.shape
+        self.set_houses(y)
+
+        for house_name in self.houses:
+            y_binary = np.where(y == house_name, 1, 0).reshape(-1, 1)
+            w = np.zeros((n, 1))  # khởi tạo trọng số
+            self.losses_stochastic[house_name] = []
+            for i in range(self.n_iterations_stochastic):
+                indices = np.arange(m)
+                np.random.shuffle(indices)
+                X_shuffled = X_scaled[indices]
+                y_shuffled = y_binary[indices]
+
+                total_loss = 0
+
+                for j in range(m):
+                    x_j = X_shuffled[j].reshape(1, -1)
+                    y_j = y_shuffled[j].reshape(1, 1)
+                    z = x_j @ w
+                    y_predict = self._sigmoid(z)
+
+                    loss = self._compute_loss(y_j, y_predict)
+                    if isinstance(loss, np.ndarray):
+                        loss = loss.item()
+                    total_loss += loss
+
+                    gradient = self._compute_gradient(x_j, y_j, y_predict)
+
+                    w -= self.learning_rate * gradient
+
+                avg_loss = total_loss / m
+                self.losses_stochastic[house_name].append(avg_loss)
+            self.weights_stochastic[house_name] = w
+    
+    def plot_loss_stochastic(self):
+        plt.figure(figsize=(12, 6))
+        
+        for class_name, loss_history in self.losses_stochastic.items():
+            steps = range(len(loss_history))
+            plt.plot(steps, loss_history, label=class_name, linewidth=2)
+        
+        plt.xlabel('Iterations', fontsize=12)
+        plt.ylabel('Loss', fontsize=12)
+        plt.title('Training Loss over Iterations', fontsize=14)
+        plt.legend(loc='best')
+        plt.grid(True, alpha=0.3)
+        plt.tight_layout()
+        try:
+            plt.show()
+        except KeyboardInterrupt:
+            print("\nTraining Loss plot is closed")
+            plt.close('all')
+    
+    def save_weights_stochastic(self, filename='weights_stochastic.csv', feature_names=None):
+        feature_names = ['Bias'] + feature_names
+        weight_dict = {'Feature': feature_names}
+        for house_name, weight in self.weights_stochastic.items():
             weight_dict[house_name] = weight.flatten()
         
         df = pd.DataFrame(weight_dict)
