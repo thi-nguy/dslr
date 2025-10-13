@@ -17,7 +17,10 @@ class DataHandle:
         '25%': lambda data: self._percentile(data, 25),
         '50%': lambda data: self._percentile(data, 50),
         '75%': lambda data: self._percentile(data, 75),
-        'max': self._max
+        'max': self._max,
+        # --- BONUS ----
+        # 'CV': self._coeff_of_variance,
+        # 'MAD': self._mean_abs_deviation
         }
 
     def _is_numerical_string(self, data):
@@ -128,6 +131,13 @@ class DataHandle:
 
         weight = index - lower_index
         return (sorted_values[lower_index] * (1- weight) + sorted_values[upper_index] * weight)
+    
+    def _coeff_of_variance(self, values): # CV high: data flucturates a lot
+        return (np.std(values) / np.mean(values)) * 100
+    
+    def _mean_abs_deviation(self, values): # same as std but less sensitive to outliers
+        mean = np.mean(values)
+        return (np.mean(np.abs(values - mean)))
 
     def _calculate_all_stats(self):
         for column in self.column_list:
